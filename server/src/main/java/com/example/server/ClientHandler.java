@@ -86,6 +86,7 @@ public class ClientHandler implements Runnable{
     private void handleControlMessage(ControlMessage message) {
         if(message.getType().equals("JOIN")){
             //ADD THE CLIENT TO THE DATABASE
+            this.clientUserName = message.getSender();
             String content = "WELCOME TO THE DARK CHAT!";
             sendMessageToRecipient(this, content);
         }
