@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import com.example.sharedmodule.ChatMessage;
 import com.example.sharedmodule.ControlMessage;
 import com.example.sharedmodule.Message;
 import com.google.gson.Gson;
@@ -43,7 +44,8 @@ public class ClientHandler implements Runnable{
 
                 System.out.println(messageFromClient);
                 if(messageFromClient != null){
-
+                    System.out.println("hi1");
+                    handleMessage(messageFromClient);
                 }
             } catch(IOException e){
                 closeEverything();
@@ -56,13 +58,13 @@ public class ClientHandler implements Runnable{
     private void handleMessage(String message){
         try{
             Message parsedMessage = Message.fromJson(message);
-            if(this.clientUserName.equals("")){
-                this.clientUserName = parsedMessage.getSender();
-            }
-            if(parsedMessage instanceof ControlMessage){
-                handleControlMessage((ControlMessage) parsedMessage);
-            } else {
-                handleChatMessage(parsedMessage);
+            if(parsedMessage.getType().equals("JOIN") || parsedMessage.getType().equals("LEAVE") || parsedMessage.getType().equals("COMMAND")){
+                ControlMessage parsedControlMessage = ControlMessage.fromJson(message);
+                System.out.println(parsedControlMessage.getPassword());
+                handleControlMessage(parsedControlMessage);
+            } else if(parsedMessage.getType().equals("CHAT")){
+                ChatMessage parsedChatMessage = ChatMessage.fromJson(message);
+                handleChatMessage(parsedChatMessage);
             }
         } catch(Exception e){
             e.printStackTrace();
@@ -70,7 +72,7 @@ public class ClientHandler implements Runnable{
     }
 
     // handle the chat messages from the client
-    private void handleChatMessage(Message message) {
+    private void handleChatMessage(ChatMessage message) {
         if(message.getType().equals("CHAT")){
             for (ClientHandler client: clients) {
                 if(message.getRecipient().equals(client.clientUserName)){
@@ -86,7 +88,7 @@ public class ClientHandler implements Runnable{
     private void handleControlMessage(ControlMessage message) {
         if(message.getType().equals("JOIN")){
             //ADD THE CLIENT TO THE DATABASE
-            this.clientUserName = message.getSender();
+            this.clientUserName = message.getUsername();
             String content = "WELCOME TO THE DARK CHAT!";
             sendMessageToRecipient(this, content);
         }
@@ -99,7 +101,7 @@ public class ClientHandler implements Runnable{
     private void sendMessageToRecipient(ClientHandler targetClient, String content) {
         // Use your user or session manager to get the recipient's connection information
         // and send the message
-        Message message = new Message("SYSTEM", "server", targetClient.clientUserName, content);
+        ChatMessage message = new ChatMessage("SYSTEM", "server", targetClient.clientUserName, content);
         try {
             String messageJson =  gson.toJson(message);
 

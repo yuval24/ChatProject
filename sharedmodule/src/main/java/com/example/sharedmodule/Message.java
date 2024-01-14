@@ -5,20 +5,21 @@ import com.google.gson.Gson;
 public class Message{
     public static final String TYPE_CHAT = "CHAT";
     public static final String TYPE_SYSTEM = "SYSTEM";
+    public static final String TYPE_JOIN = "JOIN";
+    public static final String TYPE_COMMAND = "COMMAND";
+    public static final String TYPE_LEAVE = "LEAVE";
 
     private String type;
     private String sender;
     private String recipient;
-    private String content;
-    private long timestamp;
+
+    //private long timestamp;
 
 
-    public Message(String type, String sender, String recipient, String content) {
+    public Message(String type, String sender, String recipient) {
         this.type = type;
         this.sender = sender;
         this.recipient = recipient;
-        this.content = content;
-
     }
 
     public String getRecipient() {
@@ -33,28 +34,14 @@ public class Message{
         return sender;
     }
 
-    public String getContent() {
-        return content;
-    }
 
     public String getType() {
         return type;
     }
 
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
     }
 
     public void setSender(String sender) {
