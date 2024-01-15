@@ -15,20 +15,21 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 public class ServerManager {
+    private static ServerManager serverManagerInstance = null;
     private static final int PORT = 3000;
     private static final String DEFAULT_IP = "127.0.0.1";
 
     private Socket socket;
     private BufferedReader in;
     private String clientUsername;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
     private BufferedWriter out;
     private SocketCallback socketCallback;
 
-    private String validatedIP;
-    private int validatedPort;
-    public ServerManager(SocketCallback callback, String ip, int port) {
-        this.socketCallback = callback;
+    private final String validatedIP;
+    private final int validatedPort;
+    private ServerManager(String ip, int port) {
+        this.socketCallback = null;
         this.clientUsername = null; // Set it to an appropriate default value if needed
         this.socket = null;
         this.in = null;
@@ -39,11 +40,29 @@ public class ServerManager {
 
     }
 
+    public static synchronized ServerManager getInstance(String ip, int port) {
+        if (serverManagerInstance == null) {
+            serverManagerInstance = new ServerManager(ip, port);
+        }
+        return serverManagerInstance;
+    }
+
+    public void setSocketCallback(SocketCallback callback) {
+        this.socketCallback = callback;
+    }
+
     // gets a username and a password and sends it to the server.
     public void connectToServer(String username, String password){
         this.clientUsername = username;
         ControlMessage logInMessage = new ControlMessage("JOIN", this.clientUsername, "server", username, password);
         String jsonMessage = gson.toJson(logInMessage);
+        System.out.println(jsonMessage);
+        sendMessageToServer(jsonMessage);
+    }
+
+    public void sendAMessageToSomeone(String message, String name){
+        ChatMessage chatMessage = new ChatMessage("CHAT", this.clientUsername, name, message);
+        String jsonMessage = gson.toJson(chatMessage);
         System.out.println(jsonMessage);
         sendMessageToServer(jsonMessage);
     }
@@ -59,6 +78,10 @@ public class ServerManager {
             e.printStackTrace();
             socketCallback.onError("Error sending message to server");
         }
+    }
+
+    public String getClientUsername() {
+        return clientUsername;
     }
 
     public interface SocketCallback {

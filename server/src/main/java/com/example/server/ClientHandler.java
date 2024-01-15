@@ -89,7 +89,7 @@ public class ClientHandler implements Runnable{
         if(message.getType().equals("JOIN")){
             //ADD THE CLIENT TO THE DATABASE
             this.clientUserName = message.getUsername();
-            String content = "WELCOME TO THE DARK CHAT!";
+            String content = "OK";
             sendMessageToRecipient(this, content);
         }
         else if(message.getType().equals("LEAVE")){
