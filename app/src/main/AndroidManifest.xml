@@ -15,6 +15,11 @@
         android:theme="@style/Theme.DarkProject"
         tools:targetApi="31">
         <activity
+            android:name=".ChatsMenuActivity"
+            android:exported="false"
+            android:label="@string/title_activity_chats_menu"
+            android:theme="@style/Theme.DarkProject" />
+        <activity
             android:name=".ChatActivity"
             android:exported="false" />
         <activity

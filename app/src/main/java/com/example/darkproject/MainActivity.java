@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
 
     private ActivityMainBinding binding;
     private ServerManager serverManager;
-    private Button btnConnectServer;
+    private Button btnSignUp;
     private Button btnLogin;
     private EditText etUsername;
     private EditText etPassword;
@@ -31,32 +31,46 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        BottomNavigationView navView = findViewById(R.id.nav_view);
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
-                .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-        NavigationUI.setupWithNavController(binding.navView, navController);
+//        binding = ActivityMainBinding.inflate(getLayoutInflater());
+//        setContentView(binding.getRoot());
+//
+//        BottomNavigationView navView = findViewById(R.id.nav_view);
+//        // Passing each menu ID as a set of Ids because each
+//        // menu should be considered as top level destinations.
+//        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+//                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+//                .build();
+//        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
+//        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+//        NavigationUI.setupWithNavController(binding.navView, navController);
 
         //----------------------------------------------------------------------
-
+        setContentView(R.layout.activity_main);
         serverManager = ServerManager.getInstance("10.0.2.2", 3000);
         serverManager.setSocketCallback(this);
 
         etUsername = findViewById(R.id.userNameEditText);
         etPassword = findViewById(R.id.passwordEditText);
         btnLogin = findViewById(R.id.logInButton);
-        btnConnectServer = findViewById(R.id.connectServerBtn);
+        btnSignUp = findViewById(R.id.sighUpButton);
 
-        btnConnectServer.setOnClickListener(v -> {
+        btnSignUp.setOnClickListener(v -> {
             // Perform login or other actions when the button is clicked
-            serverManager.connectToServerAsync();
+            String username = etUsername.getText().toString();
+            String password = etPassword.getText().toString();
+            if(!username.equals("") && !password.equals("")) {
+                new Thread(new Runnable() {
+                    public void run() {
+                        if(serverManager.getSocket() == null){
+                            serverManager.connectToServerAsync();
+                        }
+
+                        serverManager.signUpToServer(username, password);
+                    }
+                }).start();
+            } else {
+                Toast.makeText(this,"There is a empty field, moron!", Toast.LENGTH_SHORT).show();
+            }
         });
 
         btnLogin.setOnClickListener(v -> {
@@ -65,11 +79,15 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
             if(!username.equals("") && !password.equals("")) {
                 new Thread(new Runnable() {
                     public void run() {
-                        serverManager.connectToServer(username, password);
+                        if(serverManager.getSocket() == null){
+                            serverManager.connectToServerAsync();
+                        }
+
+                        serverManager.logInToServer(username, password);
                     }
                 }).start();
             } else {
-                Toast.makeText(this,"You Gotta give me something Boy...", Toast.LENGTH_SHORT).show();
+
             }
 
             // Perform login or other actions when the button is clicked
@@ -89,11 +107,15 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
         // Handle the received data on the UI thread
         //change this later - just for checking
         if(data != null) {
-
-            ChatMessage message = ChatMessage.fromJson(data);
-
-            if(message.getContent().equals("OK")) {
-                navigateToChatActivity();
+            try{
+                ChatMessage message = ChatMessage.fromJson(data);
+                if(message.getContent().equals("OK")) {
+                    navigateToChatActivity();
+                } else if(message.getContent().equals("FAILED")){
+                    Toast.makeText(this,"Try another Username", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e){
+                e.printStackTrace();
             }
         }
 
@@ -108,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
     public void onError(String errorMessage) {
         // Handle socket errors on the UI thread
         runOnUiThread(() -> {
+            Toast.makeText(this,"Wasn't able to connect to the server", Toast.LENGTH_SHORT).show();
             // Show error message or take appropriate action
         });
     }

@@ -1,6 +1,9 @@
 package com.example.darkproject;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.*;
@@ -8,24 +11,48 @@ import android.widget.*;
 import com.example.darkproject.network.ServerManager;
 import com.example.sharedmodule.ChatMessage;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class ChatActivity extends AppCompatActivity implements ServerManager.SocketCallback{
 
     Button btnSend;
     ServerManager serverManager;
     EditText chat;
-    EditText nameToSend;
+
+    private RecyclerView recyclerView;
+    private ChatAdapter chatAdapter;
+    private List<ChatMessage> chatMessages;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        ServerManager serverManager = ServerManager.getInstance("your_ip", 3000);
+        serverManager = ServerManager.getInstance("127.0.0.1", 3000);
         serverManager.setSocketCallback(this);
 
+        recyclerView = findViewById(R.id.recyclerViewChat);
         chat = findViewById(R.id.chatEditText);
         btnSend = findViewById(R.id.sendBtn);
-        nameToSend = findViewById(R.id.nameEditText);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(layoutManager);
+
+        chatMessages = new ArrayList<>();
+
+
+        chatAdapter = new ChatAdapter(this, chatMessages);
+        recyclerView.setAdapter(chatAdapter);
+
+        // Notify the adapter after adding messages to the list
+
+
+
+
+
 
         Toast.makeText(this, "WELCOME TO THE DARK CHAT!", Toast.LENGTH_SHORT).show();
 
@@ -34,10 +61,12 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
 
 
             String message = chat.getText().toString();
-            String name = nameToSend.getText().toString();
+            String name = "Yotam";
 
             if(!message.equals("") && !name.equals("")) {
-                Toast.makeText(this, "Aww jeez! " + serverManager.getClientUsername(), Toast.LENGTH_SHORT).show();
+
+                updateUIMessage(message);
+
                 new Thread(new Runnable() {
                     public void run() {
                         serverManager.sendAMessageToSomeone(message, name);
@@ -50,6 +79,14 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
         });
     }
 
+    //adapt it later to the real sender and receiver when I am adding it to the UI
+    public void updateUIMessage(String message){
+        chatMessages.add(new ChatMessage("CHAT", serverManager.getClientUsername(), "", message));
+        chatAdapter.notifyDataSetChanged();
+    }
+
+
+
     public void onDataReceived(String data) {
         // Handle the received data on the UI thread
         //change this later - just for checking
@@ -57,7 +94,7 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
 
             ChatMessage message = ChatMessage.fromJson(data);
 
-            Toast.makeText(this, message.getContent(), Toast.LENGTH_SHORT).show();
+            updateUIMessage(message.getContent());
         }
 
         runOnUiThread(() -> {

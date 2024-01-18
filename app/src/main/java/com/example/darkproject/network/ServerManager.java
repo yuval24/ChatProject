@@ -12,12 +12,17 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.ref.WeakReference;
 import java.net.Socket;
 
 public class ServerManager {
     private static ServerManager serverManagerInstance = null;
     private static final int PORT = 3000;
     private static final String DEFAULT_IP = "127.0.0.1";
+
+    public Socket getSocket() {
+        return socket;
+    }
 
     private Socket socket;
     private BufferedReader in;
@@ -52,9 +57,17 @@ public class ServerManager {
     }
 
     // gets a username and a password and sends it to the server.
-    public void connectToServer(String username, String password){
+    public void signUpToServer(String username, String password){
         this.clientUsername = username;
-        ControlMessage logInMessage = new ControlMessage("JOIN", this.clientUsername, "server", username, password);
+        ControlMessage logInMessage = new ControlMessage("SIGNUP", this.clientUsername, "server", username, password);
+        String jsonMessage = gson.toJson(logInMessage);
+        System.out.println(jsonMessage);
+        sendMessageToServer(jsonMessage);
+    }
+
+    public void logInToServer(String username, String password){
+        this.clientUsername = username;
+        ControlMessage logInMessage = new ControlMessage("LOGIN", this.clientUsername, "server", username, password);
         String jsonMessage = gson.toJson(logInMessage);
         System.out.println(jsonMessage);
         sendMessageToServer(jsonMessage);
@@ -75,7 +88,6 @@ public class ServerManager {
             this.out.newLine();
             this.out.flush();
         } catch (IOException e) {
-            e.printStackTrace();
             socketCallback.onError("Error sending message to server");
         }
     }
@@ -89,19 +101,29 @@ public class ServerManager {
         void onError(String errorMessage);
     }
     public void connectToServerAsync() {
-        new ConnectToServer().execute();
+        new ConnectToServer(this).execute();
     }
 
 
     // will get here all the messages from the server. including - history of the chat, new chat messages, all server messages.
-    private class ConnectToServer extends AsyncTask<Void, Void ,Boolean> {
+    private static class ConnectToServer extends AsyncTask<Void, Void ,Boolean> {
+        private WeakReference<ServerManager> serverManagerReference;
+
+        ConnectToServer(ServerManager serverManager) {
+            this.serverManagerReference = new WeakReference<>(serverManager);
+        }
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            ServerManager serverManager = serverManagerReference.get();
+            if (serverManager == null) {
+                return false;
+            }
+
             try{
-                socket = new Socket(validatedIP, validatedPort);
-                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                serverManager.socket = new Socket(serverManager.validatedIP, serverManager.validatedPort);
+                serverManager.in = new BufferedReader(new InputStreamReader(serverManager.socket.getInputStream()));
+                serverManager.out = new BufferedWriter(new OutputStreamWriter(serverManager.socket.getOutputStream()));
                 System.out.println("Connected");
                 return true;
             } catch(IOException e){
@@ -110,17 +132,21 @@ public class ServerManager {
             }
         }
 
-        protected void onPostExecute(Boolean isConnected){
-            if(isConnected){
-                //socketCallback.onDataReceived("Connected to server");
+        protected void onPostExecute(Boolean isConnected) {
+            ServerManager serverManager = serverManagerReference.get();
+            if (serverManager == null) {
+                return;
+            }
+
+            if (isConnected) {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                startListening();
+                serverManager.startListening();
             } else {
-                socketCallback.onError("Failed to connect");
+                serverManager.socketCallback.onError("Failed to connect");
             }
         }
     }

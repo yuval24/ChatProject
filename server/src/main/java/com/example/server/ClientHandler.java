@@ -2,6 +2,12 @@ package com.example.server;
 
 import java.io.*;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 import com.example.sharedmodule.ChatMessage;
@@ -9,29 +15,34 @@ import com.example.sharedmodule.ControlMessage;
 import com.example.sharedmodule.Message;
 import com.google.gson.Gson;
 
-import javax.imageio.IIOException;
+
 
 public class ClientHandler implements Runnable{
-    private static ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
+    private static ArrayList<ClientHandler> clients = new ArrayList<>();
 
     private String clientUserName;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
     private Socket clientSocket;
+    private DatabaseConnection databaseConnection;
     private BufferedReader in;
     private BufferedWriter out;
 
     //constructor
     public ClientHandler(Socket socket){
         try{
+            this.databaseConnection = DatabaseConnection.getInstance();
             this.clientUserName = "";
             this.clientSocket = socket;
             this.out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             clients.add(this);
         } catch(IOException e){
+
             closeEverything();
         }
     }
+
+
 
     // This is the Thread that runs for the Current client and handles the communication with him.
     @Override
@@ -44,8 +55,9 @@ public class ClientHandler implements Runnable{
 
                 System.out.println(messageFromClient);
                 if(messageFromClient != null){
-                    System.out.println("hi1");
                     handleMessage(messageFromClient);
+                } else {
+                    closeEverything();
                 }
             } catch(IOException e){
                 closeEverything();
@@ -58,7 +70,7 @@ public class ClientHandler implements Runnable{
     private void handleMessage(String message){
         try{
             Message parsedMessage = Message.fromJson(message);
-            if(parsedMessage.getType().equals("JOIN") || parsedMessage.getType().equals("LEAVE") || parsedMessage.getType().equals("COMMAND")){
+            if(parsedMessage.getType().equals("LOGIN") || parsedMessage.getType().equals("SIGNUP") || parsedMessage.getType().equals("LEAVE") || parsedMessage.getType().equals("COMMAND")){
                 ControlMessage parsedControlMessage = ControlMessage.fromJson(message);
                 System.out.println(parsedControlMessage.getPassword());
                 handleControlMessage(parsedControlMessage);
@@ -86,14 +98,30 @@ public class ClientHandler implements Runnable{
 
     // handle the control messages from the clients according to the protocol.
     private void handleControlMessage(ControlMessage message) {
-        if(message.getType().equals("JOIN")){
+        if(message.getType().equals("SIGNUP")){
             //ADD THE CLIENT TO THE DATABASE
             this.clientUserName = message.getUsername();
-            String content = "OK";
+            String content = "";
+            if(databaseConnection.isUsernameInDatabase(this.clientUserName)){
+                content = "FAILED";
+            } else{
+                databaseConnection.sendUserToDatabase(this.clientUserName, message.getPassword());
+                content = "OK";
+            }
+
             sendMessageToRecipient(this, content);
         }
-        else if(message.getType().equals("LEAVE")){
-            //REMOVE THE CLIENT FROM THE DATABASE
+        else if(message.getType().equals("LOGIN")){
+            this.clientUserName = message.getUsername();
+            String password = message.getPassword();
+            String content = "";
+            if(databaseConnection.isUsernameAndPasswordAreValid(this.clientUserName, password)){
+                content = "OK";
+            } else{
+                content = "FAILED";
+            }
+
+            sendMessageToRecipient(this, content);
         }
     }
 
@@ -134,4 +162,5 @@ public class ClientHandler implements Runnable{
     private void removeClient(){
         clients.remove(this);
     }
+
 }
