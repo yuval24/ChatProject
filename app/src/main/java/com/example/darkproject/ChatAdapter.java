@@ -20,6 +20,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     private List<ChatMessage> messages;
     Context context;
 
+
     public ChatAdapter(Context context, List<ChatMessage> messages) {
         this.messages = messages;
         this.context = context;
@@ -35,7 +36,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String message = messages.get(position).getContent();
-        holder.bind(message);
+        String name = messages.get(position).getSender();
+        holder.bind(message, name);
     }
 
     @Override
@@ -46,16 +48,17 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         private TextView messageTextView;
+        private TextView nameTextView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            messageTextView = itemView.findViewById(R.id.messageTextView); // Replace with your actual TextView ID
+            messageTextView = itemView.findViewById(R.id.messageTextView);
+            nameTextView = itemView.findViewById(R.id.nameTextView);
         }
 
-        public void bind(String message) {
+        public void bind(String message, String name) {
             messageTextView.setText(message);
-            Log.d("ChatAdapter", "Bound message: " + message);
-            System.out.println(message);
+            nameTextView.setText(name);
             // Add any additional binding logic based on your message model
         }
     }

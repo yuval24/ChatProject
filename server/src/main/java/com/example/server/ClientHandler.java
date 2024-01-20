@@ -89,7 +89,8 @@ public class ClientHandler implements Runnable{
             for (ClientHandler client: clients) {
                 if(message.getRecipient().equals(client.clientUserName)){
                     String content = message.getContent();
-                    sendMessageToRecipient(client, content);
+                    String sender = message.getSender();
+                    forwardChatMessage(client, content, sender);
                 }
             }
         }
@@ -138,6 +139,21 @@ public class ClientHandler implements Runnable{
             targetClient.out.flush();
         } catch(IOException e){
            closeEverything();
+        }
+    }
+
+    private void forwardChatMessage(ClientHandler targetClient, String content, String sender) {
+        // Use your user or session manager to get the recipient's connection information
+        // and send the message
+        ChatMessage message = new ChatMessage("CHAT", sender, targetClient.clientUserName, content);
+        try {
+            String messageJson =  gson.toJson(message);
+
+            targetClient.out.write(messageJson);
+            targetClient.out.newLine();
+            targetClient.out.flush();
+        } catch(IOException e){
+            closeEverything();
         }
     }
 

@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
 
 
     private void navigateToChatActivity() {
-        Intent intent = new Intent(this, ChatActivity.class);
+        Intent intent = new Intent(this, ChatsMenuActivity.class);
         startActivity(intent);
         finish(); // Optional: Finish the login activity so the user can't go back to it
     }

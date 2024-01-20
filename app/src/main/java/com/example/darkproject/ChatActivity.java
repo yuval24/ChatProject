@@ -29,6 +29,10 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        Intent intent = getIntent();
+
+        String chat_title = intent.getStringExtra("CHAT_TITLE");
+
         serverManager = ServerManager.getInstance("127.0.0.1", 3000);
         serverManager.setSocketCallback(this);
 
@@ -61,15 +65,15 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
 
 
             String message = chat.getText().toString();
-            String name = "Yotam";
 
-            if(!message.equals("") && !name.equals("")) {
 
-                updateUIMessage(message);
+            if(!message.equals("") && chat_title != null) {
+
+                updateUIMessage(message,  serverManager.getClientUsername(), chat_title); // might change it later for a group for more then one
 
                 new Thread(new Runnable() {
                     public void run() {
-                        serverManager.sendAMessageToSomeone(message, name);
+                        serverManager.sendAMessageToSomeone(message, chat_title);
                     }
                 }).start();
                 // Perform login or other actions when the button is clicked
@@ -80,8 +84,8 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
     }
 
     //adapt it later to the real sender and receiver when I am adding it to the UI
-    public void updateUIMessage(String message){
-        chatMessages.add(new ChatMessage("CHAT", serverManager.getClientUsername(), "", message));
+    public void updateUIMessage(String message, String sender, String recipient){
+        chatMessages.add(new ChatMessage("CHAT", sender, recipient, message));
         chatAdapter.notifyDataSetChanged();
     }
 
@@ -94,7 +98,7 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
 
             ChatMessage message = ChatMessage.fromJson(data);
 
-            updateUIMessage(message.getContent());
+            updateUIMessage(message.getContent(), message.getSender(), message.getRecipient());
         }
 
         runOnUiThread(() -> {

@@ -19,10 +19,21 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_chats_menu" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewChats"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/layoutMessageInput"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        android:background="#D6EEEE"
+        android:transcriptMode="alwaysScroll"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp"
+        android:visibility="visible"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/addChatBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
