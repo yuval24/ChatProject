@@ -65,6 +65,13 @@ public class ServerManager {
         sendMessageToServer(jsonMessage);
     }
 
+    public void checkIfUserExists(String username){
+        ControlMessage checkMessage = new ControlMessage("USEREXISTS", this.clientUsername, "server", username, "");
+        String jsonMessage = gson.toJson(checkMessage);
+        System.out.println(jsonMessage);
+        sendMessageToServer(jsonMessage);
+    }
+
     public void logInToServer(String username, String password){
         this.clientUsername = username;
         ControlMessage logInMessage = new ControlMessage("LOGIN", this.clientUsername, "server", username, password);
@@ -90,6 +97,20 @@ public class ServerManager {
         } catch (IOException e) {
             socketCallback.onError("Error sending message to server");
         }
+    }
+
+    public void getUsersFromServer(){
+        ChatMessage chatMessage = new ChatMessage("GET-USERS", this.clientUsername, "server", "OK");
+        String jsonMessage = gson.toJson(chatMessage);
+        System.out.println(jsonMessage);
+        sendMessageToServer(jsonMessage);
+    }
+
+    public void getMessagesFromServerForCertainUser(String chat_title){
+        ChatMessage chatMessage = new ChatMessage("GET-MESSAGES", this.clientUsername, "server", chat_title);
+        String jsonMessage = gson.toJson(chatMessage);
+        System.out.println(jsonMessage);
+        sendMessageToServer(jsonMessage);
     }
 
     public String getClientUsername() {

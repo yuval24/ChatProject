@@ -79,8 +79,9 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
             if(!username.equals("") && !password.equals("")) {
                 new Thread(new Runnable() {
                     public void run() {
-                        if(serverManager.getSocket() == null){
+                        if(serverManager.getSocket() == null) {
                             serverManager.connectToServerAsync();
+
                         }
 
                         serverManager.logInToServer(username, password);

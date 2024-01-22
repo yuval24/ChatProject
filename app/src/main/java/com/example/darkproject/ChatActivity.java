@@ -10,6 +10,8 @@ import android.widget.*;
 
 import com.example.darkproject.network.ServerManager;
 import com.example.sharedmodule.ChatMessage;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,7 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
     Button btnSend;
     ServerManager serverManager;
     EditText chat;
-
+    private final Gson gson = new Gson();
     private RecyclerView recyclerView;
     private ChatAdapter chatAdapter;
     private List<ChatMessage> chatMessages;
@@ -35,6 +37,12 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
 
         serverManager = ServerManager.getInstance("127.0.0.1", 3000);
         serverManager.setSocketCallback(this);
+
+        new Thread(new Runnable() {
+            public void run() {
+                serverManager.getMessagesFromServerForCertainUser(chat_title);
+            }
+        }).start();
 
         recyclerView = findViewById(R.id.recyclerViewChat);
         chat = findViewById(R.id.chatEditText);
@@ -97,8 +105,17 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
         if(data != null) {
 
             ChatMessage message = ChatMessage.fromJson(data);
+            if(message.getType().equals("CHAT")){
+                updateUIMessage(message.getContent(), message.getSender(), message.getRecipient());
+            } else if(message.getType().equals("GET-MESSAGES")){
+                TypeToken<ArrayList<ChatMessage>> token = new TypeToken<ArrayList<ChatMessage>>() {};
+                ArrayList<ChatMessage> messages = gson.fromJson(message.getContent(), token.getType());
+                for(ChatMessage chatMessage : messages){
+                    updateUIMessage(chatMessage.getContent(), chatMessage.getSender(), chatMessage.getRecipient());
+                }
+            }
+            System.out.println(message);
 
-            updateUIMessage(message.getContent(), message.getSender(), message.getRecipient());
         }
 
         runOnUiThread(() -> {

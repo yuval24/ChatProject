@@ -1,10 +1,14 @@
 package com.example.server;
 
+import com.example.sharedmodule.ChatMessage;
+import com.example.sharedmodule.Message;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class DatabaseConnection {
     private static DatabaseConnection databaseConnectionInstance = null;
@@ -100,4 +104,74 @@ public class DatabaseConnection {
             }
         }
     }
+
+    public void saveMessageInDatabase(ChatMessage message, String username){
+        try{
+            String sql= "INSERT INTO messages (sender, reciever, message_content) VALUES (?, ?, ?)";
+            PreparedStatement preparedStatement = c.prepareStatement(sql);
+
+            preparedStatement.setString(1, message.getSender());
+            preparedStatement.setString(2, message.getRecipient());
+            preparedStatement.setString(3, message.getContent());
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e){
+            printSQLException(e);
+        }
+    }
+
+    public ArrayList<String> getAllUsers(String currentUsername){
+        try{
+            String sql= "SElECT * FROM messages";
+            PreparedStatement preparedStatement = c.prepareStatement(sql);
+
+            ArrayList<String> users = new ArrayList<>();
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next()){
+                String sender =resultSet.getString("sender");
+                String reciever = resultSet.getString("reciever");
+
+                if(sender.equals(currentUsername)){
+                    if(!users.contains(reciever)){
+                        users.add(reciever);
+                    }
+                } else if(resultSet.getString("reciever").equals(currentUsername)){
+                    if(!users.contains(sender)){
+                        users.add(sender);
+                    }
+                }
+
+            }
+            return users;
+        } catch (SQLException e){
+            printSQLException(e);
+        }
+        return null;
+    }
+    public ArrayList<ChatMessage> getMessagesForCertainChat(String currentUsername, String otherUser){
+        try{
+            String sql= "SElECT * FROM messages";
+            PreparedStatement preparedStatement = c.prepareStatement(sql);
+
+            ArrayList<ChatMessage> messages = new ArrayList<>();
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next()){
+                String sender =resultSet.getString("sender");
+                String reciever = resultSet.getString("reciever");
+
+                if((sender.equals(currentUsername) || sender.equals(otherUser)) && (reciever.equals(currentUsername) || reciever.equals(otherUser))){
+                    ChatMessage chatMessage = new ChatMessage("CHAT", sender, reciever,resultSet.getString("message_content"));
+                    messages.add(chatMessage);
+                }
+
+            }
+            return messages;
+        } catch (SQLException e){
+            printSQLException(e);
+        }
+        return null;
+    }
+
 }
