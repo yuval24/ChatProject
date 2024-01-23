@@ -2,12 +2,6 @@ package com.example.server;
 
 import java.io.*;
 import java.net.Socket;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 import com.example.sharedmodule.ChatMessage;
@@ -18,7 +12,7 @@ import com.google.gson.Gson;
 
 
 public class ClientHandler implements Runnable{
-    private static ArrayList<ClientHandler> clients = new ArrayList<>();
+    private static final ArrayList<ClientHandler> clients = new ArrayList<>();
 
     private String clientUserName;
     private final Gson gson = new Gson();
@@ -84,20 +78,25 @@ public class ClientHandler implements Runnable{
 
     // handle the chat messages from the client
     private void handleDataMessage(ChatMessage message) {
-        if(message.getType().equals("CHAT")){
-            for (ClientHandler client: clients) {
-                if(message.getRecipient().equals(client.clientUserName)){
-                    String content = message.getContent();
-                    String sender = message.getSender();
-                    forwardChatMessage(client, content, sender);
-                } else if(isUsernameExists(message.getRecipient())){
-                    databaseConnection.saveMessageInDatabase(message, this.clientUserName);
+        switch (message.getType()) {
+            case "CHAT":
+                for (ClientHandler client : clients) {
+                    if (message.getRecipient().equals(client.clientUserName)) {
+                        String content = message.getContent();
+                        String sender = message.getSender();
+                        forwardChatMessage(client, content, sender);
+                    } else if (isUsernameExists(message.getRecipient())) {
+                        databaseConnection.saveMessageInDatabase(message, this.clientUserName);
+                    }
                 }
-            }
-        } else if(message.getType().equals("GET-USERS")){
-            sendAListOfUsernamesExists(); // setting the content to the ArrayList of users
-        } else if(message.getType().equals("GET-MESSAGES")){
-            sendAListOfMessages(message.getContent());
+                break;
+            case "GET-USERS":
+                sendAListOfUsernamesExists(); // setting the content to the ArrayList of users
+
+                break;
+            case "GET-MESSAGES":
+                sendAListOfMessages(message.getContent());
+                break;
         }
     }
 
@@ -110,7 +109,7 @@ public class ClientHandler implements Runnable{
             case "SIGNUP": {
                 //ADD THE CLIENT TO THE DATABASE
                 this.clientUserName = message.getUsername();
-                String content = "";
+                String content;
                 if (databaseConnection.isUsernameInDatabase(this.clientUserName)) {
                     content = "FAILED";
                 } else {
@@ -124,7 +123,7 @@ public class ClientHandler implements Runnable{
             case "LOGIN": {
                 this.clientUserName = message.getUsername();
                 String password = message.getPassword();
-                String content = "";
+                String content;
                 if (databaseConnection.isUsernameAndPasswordAreValid(this.clientUserName, password)) {
                     content = "OK";
                 } else {
@@ -135,7 +134,7 @@ public class ClientHandler implements Runnable{
                 break;
             }
             case "USEREXISTS": {
-                String content = "";
+                String content;
                 if (isUsernameExists(message.getUsername())) {
                     content = "OK";
                 } else {

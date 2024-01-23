@@ -4,7 +4,6 @@ import android.os.AsyncTask;
 
 import com.example.sharedmodule.ChatMessage;
 import com.example.sharedmodule.ControlMessage;
-import com.example.sharedmodule.Message;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -192,7 +191,7 @@ public class ServerManager {
         protected void onPostExecute(String data) {
             if (data != null) {
                 // Notify the callback with the received data
-                handleMessage(data);
+
                 socketCallback.onDataReceived(data);
                 // Continue listening for incoming data
                 startListening();
@@ -203,19 +202,6 @@ public class ServerManager {
         }
     }
 
-    private Message handleMessage(String message){
-        try{
-            Message parsedMessage = Message.fromJson(message);
-            if(parsedMessage instanceof ControlMessage){
-                return (ControlMessage) parsedMessage;
-            } else if(parsedMessage instanceof ChatMessage){
-                return (ChatMessage) parsedMessage;
-            }
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     private void closeResources() {
         try {
