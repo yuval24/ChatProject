@@ -1,7 +1,6 @@
-package com.example.darkproject;
+package com.example.darkproject.adapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,18 +9,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.darkproject.R;
 import com.example.sharedmodule.ChatMessage;
 
-import java.io.Console;
-import java.util.List;
+
+import java.util.ArrayList;
+
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
 
-    private List<ChatMessage> messages;
+    private final ArrayList<ChatMessage> messages;
     Context context;
 
 
-    public ChatAdapter(Context context, List<ChatMessage> messages) {
+    public ChatAdapter(Context context, ArrayList<ChatMessage> messages) {
         this.messages = messages;
         this.context = context;
     }
@@ -59,7 +60,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
         public void bind(String message, String name) {
             messageTextView.setText(message);
             nameTextView.setText(name);
-            // Add any additional binding logic based on your message model
         }
     }
 }

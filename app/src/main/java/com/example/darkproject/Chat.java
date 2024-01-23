@@ -29,7 +29,4 @@ public class Chat {
         return false;
     }
 
-//    public static String getChatById(String chat_Id){
-//
-//    }
 }

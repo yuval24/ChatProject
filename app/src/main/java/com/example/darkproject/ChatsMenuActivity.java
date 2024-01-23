@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.os.Bundle;
 
+import com.example.darkproject.adapters.ChatsAdapter;
 import com.example.darkproject.network.ServerManager;
 import com.example.sharedmodule.ChatMessage;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;

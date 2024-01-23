@@ -1,7 +1,7 @@
 package com.example.server;
 
 import com.example.sharedmodule.ChatMessage;
-import com.example.sharedmodule.Message;
+
 
 import java.sql.Connection;
 import java.sql.DriverManager;
