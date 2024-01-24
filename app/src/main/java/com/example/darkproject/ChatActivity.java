@@ -33,12 +33,12 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
 
         Intent intent = getIntent();
 
-        String chat_title = intent.getStringExtra("CHAT_TITLE");
+        String chatId = intent.getStringExtra("CHAT_ID");
 
         serverManager = ServerManager.getInstance("127.0.0.1", 3000);
         serverManager.setSocketCallback(this);
 
-        new Thread(() -> serverManager.getMessagesFromServerForCertainUser(chat_title)).start();
+        new Thread(() -> serverManager.getMessagesFromServerForCertainUser(chatId)).start();
 
         RecyclerView recyclerView = findViewById(R.id.recyclerViewChat);
         chat = findViewById(R.id.chatEditText);
@@ -71,11 +71,11 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
             String message = chat.getText().toString();
 
 
-            if(!message.equals("") && chat_title != null) {
+            if(!message.equals("") && chatId != null) {
 
-                updateUIMessage(message,  serverManager.getClientUsername(), chat_title); // might change it later for a group for more then one
+                updateUIMessage(message,  serverManager.getClientUsername(), chatId); // might change it later for a group for more then one
 
-                new Thread(() -> serverManager.sendAMessageToSomeone(message, chat_title)).start();
+                new Thread(() -> serverManager.sendAMessageToSomeone(message, chatId)).start();
                 // Perform login or other actions when the button is clicked
             } else {
                 Toast.makeText(this, "Sending nothing? I thought your Mother taught you better than That!", Toast.LENGTH_SHORT).show();

@@ -4,7 +4,9 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import com.example.sharedmodule.Chat;
 import com.example.sharedmodule.ChatMessage;
+import com.example.sharedmodule.ChatMessageMultiple;
 import com.example.sharedmodule.ControlMessage;
 import com.example.sharedmodule.Message;
 import com.google.gson.Gson;
@@ -67,31 +69,46 @@ public class ClientHandler implements Runnable{
             if(parsedMessage.getType().equals("LOGIN") || parsedMessage.getType().equals("SIGNUP") || parsedMessage.getType().equals("LEAVE") || parsedMessage.getType().equals("USEREXISTS")){
                 ControlMessage parsedControlMessage = ControlMessage.fromJson(message);
                 handleControlMessage(parsedControlMessage);
-            } else if(parsedMessage.getType().equals("CHAT") || parsedMessage.getType().equals("GET-USERS") || parsedMessage.getType().equals("GET-MESSAGES")){
+            } else if(parsedMessage.getType().equals("CHAT") || parsedMessage.getType().equals("GET-CHATS") || parsedMessage.getType().equals("GET-MESSAGES")){
                 ChatMessage parsedChatMessage = ChatMessage.fromJson(message);
                 handleDataMessage(parsedChatMessage);
+            } else if(parsedMessage.getType().equals("CHAT-INSERT")){
+                ChatMessageMultiple parsedChatMultiple = ChatMessageMultiple.fromJson(message);
+                handleChatInsert(parsedChatMultiple);
             }
         } catch(Exception e){
             e.printStackTrace();
         }
     }
 
+
+    private void handleChatInsert(ChatMessageMultiple chatMessageMultiple){
+        String chatId = chatMessageMultiple.getRecipient();
+        String chatTitle = chatMessageMultiple.getContent();
+        ArrayList<String> usernames = chatMessageMultiple.getUsers();
+
+        databaseConnection.setNewChat(chatId, chatTitle);
+        databaseConnection.setTheUsersIntoCertainChats(chatId, usernames);
+    }
     // handle the chat messages from the client
     private void handleDataMessage(ChatMessage message) {
         switch (message.getType()) {
             case "CHAT":
+                ArrayList<String> usernames = databaseConnection.getUsernamesInChat(message.getRecipient());
+                databaseConnection.saveMessageInDatabase(message);
                 for (ClientHandler client : clients) {
-                    if (message.getRecipient().equals(client.clientUserName)) {
-                        String content = message.getContent();
-                        String sender = message.getSender();
-                        forwardChatMessage(client, content, sender);
-                    } else if (isUsernameExists(message.getRecipient())) {
-                        databaseConnection.saveMessageInDatabase(message, this.clientUserName);
+                    for(String username: usernames){
+                        if (username.equals(client.clientUserName)) {
+                            String content = message.getContent();
+                            String sender = message.getSender();
+                            forwardChatMessage(client, content, sender);
+                            break;
+                        }
                     }
                 }
                 break;
-            case "GET-USERS":
-                sendAListOfUsernamesExists(); // setting the content to the ArrayList of users
+            case "GET-CHATS":
+                sendAListOfChats(); // setting the content to the ArrayList of users
 
                 break;
             case "GET-MESSAGES":
@@ -146,9 +163,9 @@ public class ClientHandler implements Runnable{
             }
         }
     }
-    private void sendAListOfMessages(String otherUser){
-        ArrayList<ChatMessage> users = databaseConnection.getMessagesForCertainChat(this.clientUserName, otherUser);
-        String usersJson = gson.toJson(users);
+    private void sendAListOfMessages(String chatId){
+        ArrayList<ChatMessage> messages = databaseConnection.getMessagesForCertainChat(chatId);
+        String usersJson = gson.toJson(messages);
         ChatMessage usersMessage = new ChatMessage("GET-MESSAGES", "server", this.clientUserName, usersJson);
         try {
             String messageJson =  gson.toJson(usersMessage);
@@ -161,10 +178,11 @@ public class ClientHandler implements Runnable{
         }
     }
 
-    private void sendAListOfUsernamesExists(){
-        ArrayList<String> users = databaseConnection.getAllUsers(this.clientUserName);
-        String usersJson = gson.toJson(users);
-        ChatMessage usersMessage = new ChatMessage("GET-USERS", "server", this.clientUserName, usersJson);
+    private void sendAListOfChats(){
+        ArrayList<Chat> chats = databaseConnection.getAllChatsForUsername(this.clientUserName);
+        System.out.println(chats.get(0).getTitle());
+        String chatsJson = gson.toJson(chats);
+        ChatMessage usersMessage = new ChatMessage("GET-CHATS", "server", this.clientUserName, chatsJson);
         try {
             String messageJson =  gson.toJson(usersMessage);
 
@@ -174,6 +192,15 @@ public class ClientHandler implements Runnable{
         } catch(IOException e){
             closeEverything();
         }
+    }
+
+    public ArrayList<String> getTitlesForAChatIdArray(ArrayList<String> chat_Ids){
+        ArrayList<String> chat_titles = new ArrayList<>();
+        for(String chat_id : chat_Ids){
+            String title = databaseConnection.getChatTitleForChatId(chat_id);
+            chat_titles.add(title);
+        }
+        return chat_titles;
     }
 
     // sending the message to the required user/users(later on).
@@ -207,7 +234,7 @@ public class ClientHandler implements Runnable{
                 closeEverything();
             }
         }
-        databaseConnection.saveMessageInDatabase(message, this.clientUserName);
+
     }
 
     //closing the connection between the instance - the curr client, with the server.

@@ -8,22 +8,12 @@ import android.widget.Toast;
 
 import com.example.darkproject.network.ServerManager;
 import com.example.sharedmodule.ChatMessage;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
-import com.example.darkproject.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity implements ServerManager.SocketCallback{
 
-    private ActivityMainBinding binding;
     private ServerManager serverManager;
-    private Button btnSignUp;
-    private Button btnLogin;
     private EditText etUsername;
     private EditText etPassword;
 
@@ -31,40 +21,26 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        binding = ActivityMainBinding.inflate(getLayoutInflater());
-//        setContentView(binding.getRoot());
-//
-//        BottomNavigationView navView = findViewById(R.id.nav_view);
-//        // Passing each menu ID as a set of Ids because each
-//        // menu should be considered as top level destinations.
-//        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-//                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
-//                .build();
-//        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
-//        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-//        NavigationUI.setupWithNavController(binding.navView, navController);
 
-        //----------------------------------------------------------------------
         setContentView(R.layout.activity_main);
         serverManager = ServerManager.getInstance("10.0.2.2", 3000);
         serverManager.setSocketCallback(this);
 
         etUsername = findViewById(R.id.userNameEditText);
         etPassword = findViewById(R.id.passwordEditText);
-        btnLogin = findViewById(R.id.logInButton);
-        btnSignUp = findViewById(R.id.sighUpButton);
+        Button btnLogin = findViewById(R.id.logInButton);
+        Button btnSignUp = findViewById(R.id.sighUpButton);
 
         btnSignUp.setOnClickListener(v -> {
             // Perform login or other actions when the button is clicked
             String username = etUsername.getText().toString();
             String password = etPassword.getText().toString();
             if(!username.equals("") && !password.equals("")) {
-                new Thread(new Runnable() {
-                    public void run() {
-                        if(serverManager.getSocket() == null){
-                            serverManager.connectToServerAsync();
-                        }
-
+                new Thread(() -> {
+                    if(serverManager.getSocket() == null){
+                        serverManager.connectToServerAsync();
+                        serverManager.signUpToServer(username, password);
+                    } else{
                         serverManager.signUpToServer(username, password);
                     }
                 }).start();
@@ -77,18 +53,16 @@ public class MainActivity extends AppCompatActivity implements ServerManager.Soc
             String username = etUsername.getText().toString();
             String password = etPassword.getText().toString();
             if(!username.equals("") && !password.equals("")) {
-                new Thread(new Runnable() {
-                    public void run() {
-                        if(serverManager.getSocket() == null) {
-                            serverManager.connectToServerAsync();
-
-                        }
-
+                new Thread(() -> {
+                    if(serverManager.getSocket() == null) {
+                        serverManager.connectToServerAsync();
+                        serverManager.logInToServer(username, password);
+                    } else{
                         serverManager.logInToServer(username, password);
                     }
                 }).start();
             } else {
-
+                Toast.makeText(this,"There is a empty field, moron!", Toast.LENGTH_SHORT).show();
             }
 
             // Perform login or other actions when the button is clicked

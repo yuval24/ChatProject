@@ -2,7 +2,9 @@ package com.example.darkproject.network;
 
 import android.os.AsyncTask;
 
+import com.example.sharedmodule.Chat;
 import com.example.sharedmodule.ChatMessage;
+import com.example.sharedmodule.ChatMessageMultiple;
 import com.example.sharedmodule.ControlMessage;
 import com.google.gson.Gson;
 
@@ -13,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class ServerManager {
     private static ServerManager serverManagerInstance = null;
@@ -55,6 +58,13 @@ public class ServerManager {
         this.socketCallback = callback;
     }
 
+    public void sendNewChatToServer(Chat chat, ArrayList<String> groupMembers){
+        ChatMessageMultiple newChat = new ChatMessageMultiple("CHAT-INSERT", this.clientUsername, chat.getChatId(), chat.getTitle(),groupMembers);
+        String jsonMessage = gson.toJson(newChat);
+        System.out.println(jsonMessage);
+        sendMessageToServer(jsonMessage);
+    }
+
     // gets a username and a password and sends it to the server.
     public void signUpToServer(String username, String password){
         this.clientUsername = username;
@@ -79,8 +89,8 @@ public class ServerManager {
         sendMessageToServer(jsonMessage);
     }
 
-    public void sendAMessageToSomeone(String message, String name){
-        ChatMessage chatMessage = new ChatMessage("CHAT", this.clientUsername, name, message);
+    public void sendAMessageToSomeone(String message, String chatId){
+        ChatMessage chatMessage = new ChatMessage("CHAT", this.clientUsername, chatId, message);
         String jsonMessage = gson.toJson(chatMessage);
         System.out.println(jsonMessage);
         sendMessageToServer(jsonMessage);
@@ -99,7 +109,7 @@ public class ServerManager {
     }
 
     public void getUsersFromServer(){
-        ChatMessage chatMessage = new ChatMessage("GET-USERS", this.clientUsername, "server", "OK");
+        ChatMessage chatMessage = new ChatMessage("GET-CHATS", this.clientUsername, "server", "OK");
         String jsonMessage = gson.toJson(chatMessage);
         System.out.println(jsonMessage);
         sendMessageToServer(jsonMessage);

@@ -10,16 +10,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.darkproject.Chat;
+import com.example.sharedmodule.Chat;
 import com.example.darkproject.ChatActivity;
 import com.example.darkproject.R;
 
 import java.util.ArrayList;
-import java.util.List;
+
 
 public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ViewHolder> {
 
-    private ArrayList<Chat> chats;
+    private final ArrayList<Chat> chats;
     Context context;
 
     public ChatsAdapter(Context context, ArrayList<Chat> chats) {
@@ -42,8 +42,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ViewHolder> 
         holder.bind(message);
 
         holder.itemView.setOnClickListener(view ->{
-            String title = chat.getTitle();
-            openIndividualChatActivity(title);
+            String chatId = chat.getChatId();
+            openIndividualChatActivity(chatId);
 
         });
     }
@@ -53,9 +53,9 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ViewHolder> 
         return chats.size();
     }
 
-    private void openIndividualChatActivity(String title) {
+    private void openIndividualChatActivity(String chatId) {
         Intent intent = new Intent(context, ChatActivity.class);
-        intent.putExtra("CHAT_TITLE", title); // later change it to the id
+        intent.putExtra("CHAT_ID", chatId); // later change it to the id
         context.startActivity(intent);
     }
 

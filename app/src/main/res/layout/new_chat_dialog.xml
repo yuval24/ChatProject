@@ -12,11 +12,40 @@
         android:inputType="text"
         android:layout_marginBottom="16dp" />
 
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recipientEditText"
+        android:hint="Enter chat title"
+        android:inputType="text"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp" />
+
     <Button
         android:id="@+id/buttonStartChat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/titleEditText"
         android:layout_alignParentEnd="true"
         android:text="Start" />
+
+    <Button
+        android:id="@+id/buttonAddUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/titleEditText"
+        android:layout_alignBottom="@id/buttonStartChat"
+        android:layout_marginStart="8dp"
+        android:text="Add" />
+
+    <TextView
+        android:id="@+id/userListTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonAddUser"
+        android:layout_marginTop="16dp"
+        android:text="User List: "
+        android:textStyle="bold" />
 
 </RelativeLayout>
