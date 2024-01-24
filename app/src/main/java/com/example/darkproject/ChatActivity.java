@@ -74,7 +74,7 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
             if(!message.equals("") && chatId != null) {
 
                 updateUIMessage(message,  serverManager.getClientUsername(), chatId); // might change it later for a group for more then one
-
+                chat.setText("");
                 new Thread(() -> serverManager.sendAMessageToSomeone(message, chatId)).start();
                 // Perform login or other actions when the button is clicked
             } else {
