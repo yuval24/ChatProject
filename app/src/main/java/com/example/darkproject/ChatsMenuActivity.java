@@ -102,7 +102,17 @@ public class ChatsMenuActivity extends AppCompatActivity implements ServerManage
                 chatsAdapter.notifyDataSetChanged();
                 dialog.dismiss();  // Dismiss the dialog
             } else if(currentUserNamesInDialog.size() == 1){
-                Chat chat = new Chat(currentUserNamesInDialog.get(0), UniqueIdGenerator.generateUniqueId(), true);
+                String privateChatUser = currentUserNamesInDialog.get(0);
+                if(!isPrivateChatAlreadyExists(privateChatUser)){
+                    currentUserNamesInDialog.add(serverManager.getClientUsername());
+                    Chat chat = new Chat(privateChatUser, UniqueIdGenerator.generateUniqueId(), true);
+                    new Thread(() -> serverManager.sendNewChatToServer(chat, currentUserNamesInDialog)).start();
+                    chats.add(chat);
+                    chatsAdapter.notifyDataSetChanged();
+                    dialog.dismiss();
+                } else {
+                    Toast.makeText(this,"You already have a chat with him alone", Toast.LENGTH_SHORT).show();
+                }
             }
             else {
                 Toast.makeText(this,"Something is missing", Toast.LENGTH_SHORT).show();
@@ -149,6 +159,15 @@ public class ChatsMenuActivity extends AppCompatActivity implements ServerManage
         }
 
     }
+    private boolean isPrivateChatAlreadyExists(String privateChatUser){
+        for (Chat chat: chats) {
+            if(chat.isPrivateChat() && chat.getTitle().equals(privateChatUser)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private boolean isChatIsPrivate(){
         return currentUserNamesInDialog.size() == 1;

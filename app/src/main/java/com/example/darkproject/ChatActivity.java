@@ -43,6 +43,7 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
         RecyclerView recyclerView = findViewById(R.id.recyclerViewChat);
         chat = findViewById(R.id.chatEditText);
         btnSend = findViewById(R.id.sendBtn);
+        Button btnExit = findViewById(R.id.exitBtn);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
 
@@ -80,6 +81,15 @@ public class ChatActivity extends AppCompatActivity implements ServerManager.Soc
             } else {
                 Toast.makeText(this, "Sending nothing? I thought your Mother taught you better than That!", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        btnExit.setOnClickListener(v -> {
+
+
+            Intent intent_previous = new Intent(this, ChatsMenuActivity.class);
+            intent_previous.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent_previous);
+            finish();
         });
     }
 
