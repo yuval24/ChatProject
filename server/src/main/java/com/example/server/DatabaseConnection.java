@@ -17,7 +17,7 @@ public class DatabaseConnection {
     public static Connection getConnection() throws SQLException {
         String jdbcUrl = "jdbc:postgresql://localhost:5432/postgres";
         String username = "postgres";
-        String password = "mipelord73";
+        String password = "password";
 
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
